@@ -1,0 +1,80 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed for release-asset upload on tag
+
+jobs:
+  binary:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_path: dist/loki-cli
+            asset_name: loki-cli-linux-x86_64
+          - os: windows-latest
+            artifact_path: dist/loki-cli.exe
+            asset_name: loki-cli-windows-x86_64.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project and PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[build]"
+
+      - name: Build standalone binary
+        run: pyinstaller --clean --noconfirm loki-cli.spec
+
+      - name: Smoke test binary
+        shell: bash
+        run: |
+          "${{ matrix.artifact_path }}" --version
+          "${{ matrix.artifact_path }}" --help
+
+      - name: Rename artifact for release
+        shell: bash
+        run: |
+          mkdir -p out
+          cp "${{ matrix.artifact_path }}" "out/${{ matrix.asset_name }}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: out/${{ matrix.asset_name }}
+          if-no-files-found: error
+
+  release:
+    needs: binary
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release
+          find artifacts -type f -exec cp {} release/ \;
+          ls -lh release/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

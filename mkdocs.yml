@@ -1,0 +1,59 @@
+site_name: loki-cli
+site_description: A logcli-style CLI for querying Grafana Loki instances.
+site_url: https://bruno-laranjo.github.io/loki-cli/
+repo_url: https://github.com/bruno-laranjo/loki-cli
+repo_name: bruno-laranjo/loki-cli
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+    - toc.integrate
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Profiles & env vars: configuration.md
+  - Commands:
+      - Overview: commands/index.md
+      - config: commands/config.md
+      - login / logout / whoami: commands/login.md
+      - labels: commands/labels.md
+      - target: commands/target.md
+      - logs: commands/logs.md
+  - Shell completion: completion.md
+  - Building binaries: building.md
+  - Docker & Kubernetes: docker.md
